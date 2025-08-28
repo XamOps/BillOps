@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Billing Overview</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --info-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --dark-bg: #0f0f23;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: #b8c6db;
+        }
+
+        body {
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Simple header without sticky positioning */
+        .dashboard-header-container {
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard-header {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin: 0;
+        }
+
+        .futuristic-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .futuristic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .futuristic-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .futuristic-card:hover::before {
+            left: 100%;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover::after {
+            transform: scaleX(1);
+        }
+
+        .metric-card.primary::after { background: var(--primary-gradient); }
+        .metric-card.info::after { background: var(--info-gradient); }
+        .metric-card.success::after { background: var(--success-gradient); }
+        .metric-card.warning::after { background: var(--warning-gradient); }
+
+        .metric-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
+            animation: pulse 2s infinite;
+        }
+
+        .metric-icon.info { background: var(--info-gradient); }
+        .metric-icon.success { background: var(--success-gradient); }
+        .metric-icon.warning { background: var(--warning-gradient); }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .animate-slide-up {
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        /* Enhanced table styles with scrollbar */
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 16px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 10px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-gradient);
+        }
+
+        .table-futuristic {
+            margin: 0;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-futuristic thead {
+            background: var(--primary-gradient);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .table-futuristic thead th {
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            background: var(--primary-gradient);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-futuristic thead th:first-child {
+            border-top-left-radius: 16px;
+        }
+
+        .table-futuristic thead th:last-child {
+            border-top-right-radius: 16px;
+        }
+
+        .table-futuristic tbody tr {
+            border-bottom: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .table-futuristic tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: scale(1.01);
+        }
+
+        .table-futuristic tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 16px;
+        }
+
+        .table-futuristic tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 16px;
+        }
+
+        .table-futuristic tbody td {
+            border: none;
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .progress-futuristic {
+            height: 8px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            width: 100px;
+        }
+
+        .progress-bar-futuristic {
+            height: 100%;
+            background: var(--success-gradient);
+            border-radius: 10px;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: progressGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes progressGlow {
+            from { box-shadow: 0 0 5px rgba(79, 172, 254, 0.5); }
+            to { box-shadow: 0 0 20px rgba(79, 172, 254, 0.8); }
+        }
+
+        .form-select-futuristic {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-select-futuristic:focus {
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-header-futuristic {
+            background: transparent;
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1.5rem;
+        }
+
+        .stagger-animation > * {
+            opacity: 0;
+            animation: slideInUp 0.6s ease-out forwards;
+        }
+
+        .stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
+        .stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
+        .stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
+        .stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
+
+        .service-icon {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success-gradient);
+            display: inline-block;
+            margin-right: 12px;
+            animation: pulse 2s infinite;
+        }
+
+        .service-name {
+            color: var(--text-primary);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .cost-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .percentage-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            min-width: 50px;
+            font-size: 0.9rem;
+        }
+
+        .live-data-badge {
+            background: var(--success-gradient);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Ensure proper spacing for all sections */
+        .content-section {
+            margin-bottom: 2rem;
+        }
+
+        /* Container with proper padding */
+        .dashboard-container {
+            padding: 0 1rem;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="dashboard-container">
+        <!-- Header (not sticky) -->
+        <div class="dashboard-header-container animate-fade-in">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="dashboard-header">Billing Dashboard</h1>
+                <div>
+                    <span class="live-data-badge">
+                        <i class="fas fa-circle me-2" style="font-size: 0.5rem; color: #00ff88;"></i>
+                        Live Data
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="content-section stagger-animation">
+            <div class="row">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="metric-card primary h-100">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="metric-label mb-2">Current Month Spend</div>
+                                <div class="metric-value" th:text="${billingSummary.currentMonthSpend}">$3,501.50</div>
+                            </div>
+                            <div class="metric-icon">
+                                <i class="fas fa-calendar fa-lg text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="metric-card info h-100">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="metric-label mb-2">Last Month Spend</div>
+                                <div class="metric-value" th:text="${billingSummary.lastMonthSpend}">$3,000.00</div>
+                            </div>
+                            <div class="metric-icon info">
+                                <i class="fas fa-dollar-sign fa-lg text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="metric-card success h-100">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="metric-label mb-2">M/M Change</div>
+                                <div class="metric-value" th:text="${billingSummary.monthOverMonthChange}">+16.7%</div>
+                            </div>
+                            <div class="metric-icon success">
+                                <i class="fas fa-arrow-trend-up fa-lg text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="metric-card warning h-100">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="metric-label mb-2">Forecasted Spend</div>
+                                <div class="metric-value" th:text="${billingSummary.forecastedSpend}">$3,750.00</div>
+                            </div>
+                            <div class="metric-icon warning">
+                                <i class="fas fa-chart-line fa-lg text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="content-section">
+            <div class="row">
+                <div class="col-lg-8 mb-4">
+                    <div class="futuristic-card animate-slide-up">
+                        <div class="card-header-futuristic">
+                            <h6 class="m-0 font-weight-bold" style="color: var(--text-primary); font-size: 1.1rem;">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Last 6 Months Consumption
+                            </h6>
+                        </div>
+                        <div class="p-4">
+                            <div class="chart-container">
+                                <canvas id="monthlyConsumptionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4">
+                    <div class="futuristic-card animate-slide-up" style="animation-delay: 0.2s;">
+                        <div class="card-header-futuristic">
+                            <h6 class="m-0 font-weight-bold" style="color: var(--text-primary); font-size: 1.1rem;">
+                                <i class="fas fa-chart-pie me-2"></i>
+                                Top Services by Cost
+                            </h6>
+                        </div>
+                        <div class="p-4">
+                            <div class="chart-container">
+                                <canvas id="topServicesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Billing Table -->
+        <div class="content-section">
+            <div class="row">
+                <div class="col-12">
+                    <div class="futuristic-card animate-slide-up" style="animation-delay: 0.4s;">
+                        <div class="card-header-futuristic d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold" style="color: var(--text-primary); font-size: 1.1rem;">
+                                <i class="fas fa-table me-2"></i>
+                                Detailed Monthly Billing
+                            </h6>
+                            <select class="form-select-futuristic" style="width: auto;">
+                                <option>August 2025</option>
+                                <option>July 2025</option>
+                                <option>June 2025</option>
+                            </select>
+                        </div>
+                        <div class="table-container">
+                            <table class="table table-futuristic">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-server me-2"></i>Service</th>
+                                        <th><i class="fas fa-dollar-sign me-2"></i>Cost</th>
+                                        <th><i class="fas fa-percentage me-2"></i>% of Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Thymeleaf data loop -->
+                                    <tr th:each="item, iterStat : ${detailedMonthlyBilling}">
+                                        <td>
+                                            <div class="service-name">
+                                                <span class="service-icon"></span>
+                                                <span th:text="${item.service}">Amazon EC2</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="cost-value" th:text="'$' + ${#numbers.formatDecimal(item.cost, 1, 'COMMA', 2, 'POINT')}">$1,245.67</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress-futuristic me-3">
+                                                    <div class="progress-bar-futuristic" 
+                                                         th:style="'width:' + ${item.percentage} + '%;'"></div>
+                                                </div>
+                                                <span class="percentage-value" th:text="${item.percentage} + '%'">35.5%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Fallback sample data -->
+                                    <tr th:if="${#lists.isEmpty(detailedMonthlyBilling) or detailedMonthlyBilling == null}">
+                                        <td>
+                                            <div class="service-name">
+                                                <span class="service-icon"></span>
+                                                <span>Amazon EC2</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="cost-value">$1,245.67</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress-futuristic me-3">
+                                                    <div class="progress-bar-futuristic" style="width: 35.5%;"></div>
+                                                </div>
+                                                <span class="percentage-value">35.5%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(detailedMonthlyBilling) or detailedMonthlyBilling == null}">
+                                        <td>
+                                            <div class="service-name">
+                                                <span class="service-icon"></span>
+                                                <span>Amazon S3</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="cost-value">$892.34</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress-futuristic me-3">
+                                                    <div class="progress-bar-futuristic" style="width: 25.5%;"></div>
+                                                </div>
+                                                <span class="percentage-value">25.5%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(detailedMonthlyBilling) or detailedMonthlyBilling == null}">
+                                        <td>
+                                            <div class="service-name">
+                                                <span class="service-icon"></span>
+                                                <span>Amazon RDS</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="cost-value">$678.90</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress-futuristic me-3">
+                                                    <div class="progress-bar-futuristic" style="width: 19.4%;"></div>
+                                                </div>
+                                                <span class="percentage-value">19.4%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(detailedMonthlyBilling) or detailedMonthlyBilling == null}">
+                                        <td>
+                                            <div class="service-name">
+                                                <span class="service-icon"></span>
+                                                <span>AWS Lambda</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="cost-value">$456.12</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress-futuristic me-3">
+                                                    <div class="progress-bar-futuristic" style="width: 13.0%;"></div>
+                                                </div>
+                                                <span class="percentage-value">13.0%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(detailedMonthlyBilling) or detailedMonthlyBilling == null}">
+                                        <td>
+                                            <div class="service-name">
+                                                <span class="service-icon"></span>
+                                                <span>Amazon CloudFront</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="cost-value">$234.56</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress-futuristic me-3">
+                                                    <div class="progress-bar-futuristic" style="width: 6.7%;"></div>
+                                                </div>
+                                                <span class="percentage-value">6.7%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(detailedMonthlyBilling) or detailedMonthlyBilling == null}">
+                                        <td>
+                                            <div class="service-name">
+                                                <span class="service-icon"></span>
+                                                <span>Other Services</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="cost-value">$123.45</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress-futuristic me-3">
+                                                    <div class="progress-bar-futuristic" style="width: 3.5%;"></div>
+                                                </div>
+                                                <span class="percentage-value">3.5%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        const topServicesData = /*[[${topServicesData}]]*/ {
+            "Amazon EC2": 1245.67,
+            "Amazon S3": 892.34,
+            "Amazon RDS": 678.90,
+            "AWS Lambda": 456.12,
+            "Other": 358.01
+        };
+        
+        const monthlyConsumptionData = /*[[${monthlyConsumptionData}]]*/ {
+            "March": 2500,
+            "April": 2750,
+            "May": 2450,
+            "June": 3000,
+            "July": 2800,
+            "August": 3500
+        };
+        
+        Chart.defaults.font.family = "Inter", "-apple-system,system-ui,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+        Chart.defaults.color = '#ffffff';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+
+        // Enhanced Pie Chart
+        new Chart(document.getElementById('topServicesChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(topServicesData),
+                datasets: [{
+                    data: Object.values(topServicesData),
+                    backgroundColor: [
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(250, 112, 154, 0.8)',
+                        'rgba(79, 172, 254, 0.8)',
+                        'rgba(67, 233, 123, 0.8)',
+                        'rgba(245, 87, 108, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(102, 126, 234, 1)',
+                        'rgba(250, 112, 154, 1)',
+                        'rgba(79, 172, 254, 1)',
+                        'rgba(67, 233, 123, 1)',
+                        'rgba(245, 87, 108, 1)'
+                    ],
+                    borderWidth: 2,
+                    hoverBorderWidth: 3,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            color: '#ffffff'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                        borderWidth: 1
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 2000
+                }
+            }
+        });
+
+        // Enhanced Bar Chart
+        new Chart(document.getElementById('monthlyConsumptionChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(monthlyConsumptionData),
+                datasets: [{
+                    label: 'Monthly Cost ($)',
+                    data: Object.values(monthlyConsumptionData),
+                    backgroundColor: function(context) {
+                        const chart = context.chart;
+                        const {ctx, chartArea} = chart;
+                        if (!chartArea) return null;
+                        
+                        const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                        gradient.addColorStop(0, 'rgba(102, 126, 234, 0.1)');
+                        gradient.addColorStop(1, 'rgba(102, 126, 234, 0.8)');
+                        return gradient;
+                    },
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#ffffff'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                        borderWidth: 1
+                    }
+                },
+                animation: {
+                    delay: (context) => {
+                        let delay = 0;
+                        if (context.type === 'data' && context.mode === 'default') {
+                            delay = context.dataIndex * 200;
+                        }
+                        return delay;
+                    },
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+    });
+    </script>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Manage Customers</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Manage Customers</h1>
+        <a th:href="@{/admin/customers/add}" class="btn btn-primary">Add New Customer</a>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Company Name</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>AWS Role ARN</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="customer : ${customers}">
+            <td th:text="${customer.companyName}"></td>
+            <td th:text="${customer.user.username}"></td>
+            <td th:text="${customer.user.role}"></td>
+            <td th:text="${customer.awsRoleArn}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

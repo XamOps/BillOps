@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<header th:fragment="header" class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">BillOps Portal</a>
+
+    <div class="navbar-nav" sec:authorize="isAuthenticated()">
+        <div class="nav-item text-nowrap">
+            <form th:action="@{/logout}" method="post" class="d-inline">
+                <button type="submit" class="nav-link px-3 bg-dark border-0">
+                    Sign out (<span sec:authentication="name"></span>)
+                </button>
+            </form>
+        </div>
+    </div>
+</header>
+
+</body>
+</html>
