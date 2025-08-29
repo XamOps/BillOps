@@ -2,38 +2,600 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Prism Background</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            background: #000;
+        }
+
+        .prism-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .prism-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .login-container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 2rem;
+            font-weight: 300;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .register-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .register-link a:hover {
+            color: #764ba2;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            color: #d4edda;
+        }
+
+        .alert-danger {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            color: #f8d7da;
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-4">
-            <h2>Login</h2>
-            <hr/>
-            <div th:if="${param.success}" class="alert alert-success">
-                You have been registered successfully!
-            </div>
+    <div class="prism-background">
+        <div class="prism-container" id="prismContainer"></div>
+    </div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <h1 class="login-title">Login</h1>
+
             <div th:if="${param.error}" class="alert alert-danger">
                 Invalid username or password.
             </div>
 
+            <div th:if="${param.success}" class="alert alert-success">
+                You have been registered successfully!
+            </div>
+
             <form th:action="@{/login}" method="post">
-                <div class="mb-3">
+                <div class="form-group">
                     <label for="username" class="form-label">Username</label>
-                    <input type="text" id="username" name="username" class="form-control" required autofocus>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" required autofocus>
                 </div>
-                <div class="mb-3">
+                
+                <div class="form-group">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" id="password" name="password" class="form-control" required>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Sign in</button>
+                
+                <button type="submit" class="btn-primary">Sign in</button>
             </form>
-            <div class="mt-3 text-center">
+            
+            <div class="register-link">
                 <span>Don't have an account? </span><a th:href="@{/register}">Register here</a>
             </div>
         </div>
     </div>
-</div>
+
+    <script>
+        // React Bits Prism Effect Implementation
+        class PrismEffect {
+            constructor(container, options = {}) {
+                this.container = container;
+                this.options = {
+                    height: 3.5,
+                    baseWidth: 5.5,
+                    animationType: 'rotate',
+                    glow: 1,
+                    offset: { x: 0, y: 0 },
+                    noise: 0.5,
+                    transparent: true,
+                    scale: 3.6,
+                    hueShift: 0,
+                    colorFrequency: 1,
+                    timeScale: 0.5,
+                    ...options
+                };
+                
+                // Initialize random values for rotation
+                this.wX = (0.3 + Math.random() * 0.6);
+                this.wY = (0.2 + Math.random() * 0.7);
+                this.wZ = (0.1 + Math.random() * 0.5);
+                this.phX = Math.random() * Math.PI * 2;
+                this.phZ = Math.random() * Math.PI * 2;
+                
+                this.init();
+            }
+
+            init() {
+                const canvas = document.createElement('canvas');
+                canvas.style.cssText = `
+                    position: absolute;
+                    inset: 0;
+                    width: 100%;
+                    height: 100%;
+                    display: block;
+                `;
+                this.container.appendChild(canvas);
+                
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (!gl) {
+                    console.warn('WebGL not supported, using fallback');
+                    this.createFallbackBackground();
+                    return;
+                }
+
+                this.gl = gl;
+                this.canvas = canvas;
+                this.setupWebGL();
+                this.resize();
+                
+                this.resizeObserver = new ResizeObserver(() => this.resize());
+                this.resizeObserver.observe(this.container);
+                
+                this.startAnimation();
+            }
+
+            createFallbackBackground() {
+                // Animated CSS gradient fallback
+                this.container.innerHTML = `
+                    <div style="
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: radial-gradient(ellipse at center,
+                            rgba(255, 255, 255, 0.8) 0%,
+                            rgba(135, 206, 235, 0.6) 20%,
+                            rgba(255, 182, 193, 0.5) 40%,
+                            rgba(255, 218, 185, 0.4) 60%,
+                            rgba(221, 160, 221, 0.5) 80%,
+                            rgba(173, 216, 230, 0.3) 100%);
+                        animation: prismFallback 8s ease-in-out infinite alternate;
+                    "></div>
+                    <style>
+                        @keyframes prismFallback {
+                            0% { filter: hue-rotate(0deg) brightness(1.0); }
+                            50% { filter: hue-rotate(180deg) brightness(1.2); }
+                            100% { filter: hue-rotate(360deg) brightness(1.0); }
+                        }
+                    </style>
+                `;
+            }
+
+            setupWebGL() {
+                const gl = this.gl;
+                
+                gl.disable(gl.DEPTH_TEST);
+                gl.disable(gl.CULL_FACE);
+                gl.disable(gl.BLEND);
+
+                const vertexShader = this.createShader(gl.VERTEX_SHADER, `
+                    attribute vec2 position;
+                    void main() {
+                        gl_Position = vec4(position, 0.0, 1.0);
+                    }
+                `);
+
+                const fragmentShader = this.createShader(gl.FRAGMENT_SHADER, `
+                    precision highp float;
+                    uniform vec2 iResolution;
+                    uniform float iTime;
+                    uniform float uHeight;
+                    uniform float uBaseHalf;
+                    uniform mat3 uRot;
+                    uniform int uUseBaseWobble;
+                    uniform float uGlow;
+                    uniform vec2 uOffsetPx;
+                    uniform float uNoise;
+                    uniform float uSaturation;
+                    uniform float uScale;
+                    uniform float uHueShift;
+                    uniform float uColorFreq;
+                    uniform float uBloom;
+                    uniform float uCenterShift;
+                    uniform float uInvBaseHalf;
+                    uniform float uInvHeight;
+                    uniform float uMinAxis;
+                    uniform float uPxScale;
+                    uniform float uTimeScale;
+
+                    vec4 tanh4(vec4 x) {
+                        vec4 e2x = exp(2.0 * x);
+                        return (e2x - 1.0) / (e2x + 1.0);
+                    }
+
+                    float rand(vec2 co) {
+                        return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453123);
+                    }
+
+                    float sdOctaAnisoInv(vec3 p) {
+                        vec3 q = vec3(abs(p.x) * uInvBaseHalf, abs(p.y) * uInvHeight, abs(p.z) * uInvBaseHalf);
+                        float m = q.x + q.y + q.z - 1.0;
+                        return m * uMinAxis * 0.5773502691896258;
+                    }
+
+                    float sdPyramidUpInv(vec3 p) {
+                        float oct = sdOctaAnisoInv(p);
+                        float halfSpace = -p.y;
+                        return max(oct, halfSpace);
+                    }
+
+                    mat3 hueRotation(float a) {
+                        float c = cos(a), s = sin(a);
+                        mat3 W = mat3(
+                            0.299, 0.587, 0.114,
+                            0.299, 0.587, 0.114,
+                            0.299, 0.587, 0.114
+                        );
+                        mat3 U = mat3(
+                            0.701, -0.587, -0.114,
+                            -0.299, 0.413, -0.114,
+                            -0.300, -0.588, 0.886
+                        );
+                        mat3 V = mat3(
+                            0.168, -0.331, 0.500,
+                            0.328, 0.035, -0.500,
+                            -0.497, 0.296, 0.201
+                        );
+                        return W + U * c + V * s;
+                    }
+
+                    void main() {
+                        vec2 f = (gl_FragCoord.xy - 0.5 * iResolution.xy - uOffsetPx) * uPxScale;
+                        float z = 5.0;
+                        float d = 0.0;
+                        vec3 p;
+                        vec4 o = vec4(0.0);
+                        float centerShift = uCenterShift;
+                        float cf = uColorFreq;
+                        mat2 wob = mat2(1.0);
+                        
+                        if (uUseBaseWobble == 1) {
+                            float t = iTime * uTimeScale;
+                            float c0 = cos(t + 0.0);
+                            float c1 = cos(t + 33.0);
+                            float c2 = cos(t + 11.0);
+                            wob = mat2(c0, c1, c2, c0);
+                        }
+
+                        const int STEPS = 100;
+                        for (int i = 0; i < STEPS; i++) {
+                            p = vec3(f, z);
+                            p.xz = p.xz * wob;
+                            p = uRot * p;
+                            vec3 q = p;
+                            q.y += centerShift;
+                            d = 0.1 + 0.2 * abs(sdPyramidUpInv(q));
+                            z -= d;
+                            o += (sin((p.y + z) * cf + vec4(0.0, 1.0, 2.0, 3.0)) + 1.0) / d;
+                        }
+
+                        o = tanh4(o * o * (uGlow * uBloom) / 1e5);
+                        vec3 col = o.rgb;
+                        float n = rand(gl_FragCoord.xy + vec2(iTime));
+                        col += (n - 0.5) * uNoise;
+                        col = clamp(col, 0.0, 1.0);
+                        float L = dot(col, vec3(0.2126, 0.7152, 0.0722));
+                        col = clamp(mix(vec3(L), col, uSaturation), 0.0, 1.0);
+                        
+                        if (abs(uHueShift) > 0.0001) {
+                            col = clamp(hueRotation(uHueShift) * col, 0.0, 1.0);
+                        }
+                        
+                        gl_FragColor = vec4(col, o.a);
+                    }
+                `);
+
+                this.program = this.createProgram(vertexShader, fragmentShader);
+                
+                const vertices = new Float32Array([
+                    -1, -1,
+                    3, -1,
+                    -1, 3
+                ]);
+                
+                this.vertexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+                
+                this.setupUniforms();
+            }
+
+            createShader(type, source) {
+                const gl = this.gl;
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.error('Shader compilation error:', gl.getShaderInfoLog(shader));
+                    gl.deleteShader(shader);
+                    return null;
+                }
+                
+                return shader;
+            }
+
+            createProgram(vertexShader, fragmentShader) {
+                const gl = this.gl;
+                const program = gl.createProgram();
+                gl.attachShader(program, vertexShader);
+                gl.attachShader(program, fragmentShader);
+                gl.linkProgram(program);
+                
+                if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                    console.error('Program linking error:', gl.getProgramInfoLog(program));
+                    gl.deleteProgram(program);
+                    return null;
+                }
+                
+                return program;
+            }
+
+            setupUniforms() {
+                const gl = this.gl;
+                gl.useProgram(this.program);
+                
+                const H = Math.max(0.001, this.options.height);
+                const BW = Math.max(0.001, this.options.baseWidth);
+                const BASE_HALF = BW * 0.5;
+                const GLOW = Math.max(0.0, this.options.glow);
+                const NOISE = Math.max(0.0, this.options.noise);
+                const offX = this.options.offset?.x ?? 0;
+                const offY = this.options.offset?.y ?? 0;
+                const SAT = this.options.transparent ? 1.5 : 1;
+                const SCALE = Math.max(0.001, this.options.scale);
+                const HUE = this.options.hueShift || 0;
+                const CFREQ = Math.max(0.0, this.options.colorFrequency || 1);
+                const BLOOM = Math.max(0.0, this.options.bloom || 1);
+                const TS = Math.max(0, this.options.timeScale || 1);
+                
+                const dpr = Math.min(2, window.devicePixelRatio || 1);
+                
+                this.uniforms = {};
+                const uniformNames = [
+                    'iResolution', 'iTime', 'uHeight', 'uBaseHalf', 'uUseBaseWobble', 'uRot', 'uGlow', 
+                    'uOffsetPx', 'uNoise', 'uSaturation', 'uScale', 'uHueShift', 'uColorFreq', 'uBloom', 
+                    'uCenterShift', 'uInvBaseHalf', 'uInvHeight', 'uMinAxis', 'uPxScale', 'uTimeScale'
+                ];
+                
+                uniformNames.forEach(name => {
+                    this.uniforms[name] = gl.getUniformLocation(this.program, name);
+                });
+                
+                // Set uniform values
+                gl.uniform1f(this.uniforms.uHeight, H);
+                gl.uniform1f(this.uniforms.uBaseHalf, BASE_HALF);
+                gl.uniform1i(this.uniforms.uUseBaseWobble, 1);
+                gl.uniform1f(this.uniforms.uGlow, GLOW);
+                gl.uniform2f(this.uniforms.uOffsetPx, offX * dpr, offY * dpr);
+                gl.uniform1f(this.uniforms.uNoise, NOISE);
+                gl.uniform1f(this.uniforms.uSaturation, SAT);
+                gl.uniform1f(this.uniforms.uScale, SCALE);
+                gl.uniform1f(this.uniforms.uHueShift, HUE);
+                gl.uniform1f(this.uniforms.uColorFreq, CFREQ);
+                gl.uniform1f(this.uniforms.uBloom, BLOOM);
+                gl.uniform1f(this.uniforms.uCenterShift, H * 0.25);
+                gl.uniform1f(this.uniforms.uInvBaseHalf, 1 / BASE_HALF);
+                gl.uniform1f(this.uniforms.uInvHeight, 1 / H);
+                gl.uniform1f(this.uniforms.uMinAxis, Math.min(BASE_HALF, H));
+                gl.uniform1f(this.uniforms.uTimeScale, TS);
+                
+                this.rotBuf = new Float32Array(9);
+                this.setIdentityMatrix();
+                gl.uniformMatrix3fv(this.uniforms.uRot, false, this.rotBuf);
+            }
+
+            setIdentityMatrix() {
+                this.rotBuf[0] = 1; this.rotBuf[1] = 0; this.rotBuf[2] = 0;
+                this.rotBuf[3] = 0; this.rotBuf[4] = 1; this.rotBuf[5] = 0;
+                this.rotBuf[6] = 0; this.rotBuf[7] = 0; this.rotBuf[8] = 1;
+            }
+
+            setRotationMatrix(yaw, pitch, roll) {
+                const cy = Math.cos(yaw), sy = Math.sin(yaw);
+                const cx = Math.cos(pitch), sx = Math.sin(pitch);
+                const cz = Math.cos(roll), sz = Math.sin(roll);
+                
+                this.rotBuf[0] = cy * cz + sy * sx * sz;
+                this.rotBuf[1] = cx * sz;
+                this.rotBuf[2] = -sy * cz + cy * sx * sz;
+                this.rotBuf[3] = -cy * sz + sy * sx * cz;
+                this.rotBuf[4] = cx * cz;
+                this.rotBuf[5] = sy * sz + cy * sx * cz;
+                this.rotBuf[6] = sy * cx;
+                this.rotBuf[7] = -sx;
+                this.rotBuf[8] = cy * cx;
+            }
+
+            resize() {
+                if (!this.gl) return;
+                
+                const rect = this.container.getBoundingClientRect();
+                const dpr = Math.min(2, window.devicePixelRatio || 1);
+                
+                this.canvas.width = rect.width * dpr;
+                this.canvas.height = rect.height * dpr;
+                
+                this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+                this.gl.uniform2f(this.uniforms.iResolution, this.canvas.width, this.canvas.height);
+                
+                const SCALE = Math.max(0.001, this.options.scale);
+                this.gl.uniform1f(this.uniforms.uPxScale, 1 / ((this.gl.drawingBufferHeight || 1) * 0.1 * SCALE));
+            }
+
+            render(time) {
+                if (!this.gl || !this.program) return;
+                
+                const gl = this.gl;
+                
+                gl.clearColor(0, 0, 0, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                
+                gl.useProgram(this.program);
+                gl.uniform1f(this.uniforms.iTime, time * 0.001);
+                
+                // Animation
+                const tScaled = time * 0.001 * this.options.timeScale;
+                const yaw = tScaled * this.wY;
+                const pitch = Math.sin(tScaled * this.wX + this.phX) * 0.6;
+                const roll = Math.sin(tScaled * this.wZ + this.phZ) * 0.5;
+                
+                this.setRotationMatrix(yaw, pitch, roll);
+                gl.uniformMatrix3fv(this.uniforms.uRot, false, this.rotBuf);
+                
+                const positionLocation = gl.getAttribLocation(this.program, 'position');
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+                gl.enableVertexAttribArray(positionLocation);
+                gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+                
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+                
+                this.animationId = requestAnimationFrame((t) => this.render(t));
+            }
+
+            startAnimation() {
+                this.startTime = performance.now();
+                this.render(0);
+            }
+
+            destroy() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+                if (this.resizeObserver) {
+                    this.resizeObserver.disconnect();
+                }
+            }
+        }
+
+        // Initialize the prism effect
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('prismContainer');
+            new PrismEffect(container, {
+                animationType: 'rotate',
+                timeScale: 0.5,
+                height: 3.5,
+                baseWidth: 5.5,
+                scale: 3.6,
+                hueShift: 0,
+                colorFrequency: 1,
+                noise: 0.5,
+                glow: 1
+            });
+        });
+    </script>
 </body>
 </html>
