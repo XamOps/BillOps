@@ -8,6 +8,8 @@ public class DashboardController {
 
     @GetMapping("/dashboard")
     public String dashboard() {
+        // This controller now only returns the view name.
+        // All data loading has been moved to the BillingController.
         return "dashboard";
     }
 }

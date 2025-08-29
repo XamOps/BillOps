@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Add GCP Account</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container">
+        <h1>Add Google Cloud Platform Account</h1>
+        <form th:action="@{/account/add-gcp}" th:object="${gcpAccountRequest}" method="post">
+            <div class="mb-3">
+                <label for="accountName" class="form-label">Account Name</label>
+                <input type="text" class="form-control" id="accountName" th:field="*{accountName}" required>
+            </div>
+            <div class="mb-3">
+                <label for="projectId" class="form-label">Project ID</label>
+                <input type="text" class="form-control" id="projectId" th:field="*{projectId}" required>
+            </div>
+            <div class="mb-3">
+                <label for="serviceAccountKey" class="form-label">Service Account Key (JSON)</label>
+                <textarea class="form-control" id="serviceAccountKey" rows="10" th:field="*{serviceAccountKey}" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Add GCP Account</button>
+            <a th:href="@{/account/add}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+</body>
+</html>

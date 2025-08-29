@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Add Cloud Account</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container">
+        <h1 class="h2">Add a New Cloud Account</h1>
+        <p>Select a cloud provider to connect your account.</p>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Amazon Web Services</h5>
+                        <p class="card-text">Connect your AWS account using a CloudFormation stack for read-only access.</p>
+                        <button type-="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#awsModal">
+                            Connect AWS
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Google Cloud Platform</h5>
+                        <p class="card-text">Connect your GCP account by providing a service account key.</p>
+                        <a th:href="@{/account/add-gcp}" class="btn btn-success">Connect GCP</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="awsModal" tabindex="-1" aria-labelledby="awsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="awsModalLabel">Connect AWS Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="awsAccountForm">
+                        <div class="mb-3">
+                            <label for="awsAccountName" class="form-label">Account Name</label>
+                            <input type="text" class="form-control" id="awsAccountName" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="launchStack()">Launch Stack</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function launchStack() {
+            const accountName = document.getElementById('awsAccountName').value;
+            if (!accountName) {
+                alert('Please enter an account name.');
+                return;
+            }
+
+            const response = await fetch('/account/generate-stack-url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': getCsrfToken()
+                },
+                body: JSON.stringify({ accountName: accountName, accessType: 'read-only' })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                window.open(data.url, '_blank');
+                // Hide the modal and redirect to the account manager page
+                var awsModal = bootstrap.Modal.getInstance(document.getElementById('awsModal'));
+                awsModal.hide();
+                window.location.href = '/account/manager';
+            } else {
+                alert('Failed to generate CloudFormation URL.');
+            }
+        }
+
+        function getCsrfToken() {
+            // A simple way to get the CSRF token from a cookie
+            const name = 'XSRF-TOKEN=';
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const ca = decodedCookie.split(';');
+            for(let i = 0; i <ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) === 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+    </script>
+</div>
+</body>
+</html>

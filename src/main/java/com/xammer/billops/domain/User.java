@@ -1,13 +1,13 @@
 package com.xammer.billops.domain;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import javax.persistence.*; // Changed from jakarta.persistence
 
 @Entity
-@Table(name = "app_users")
-@Getter
-@Setter
+@Table(name = "app_users") // Renamed table to avoid conflict with 'user' keyword
+@Data
+@NoArgsConstructor
 public class User {
 
     @Id
@@ -22,6 +22,4 @@ public class User {
 
     @Column(nullable = false)
     private String role;
-
-    // All getters and setters are now generated automatically!
 }

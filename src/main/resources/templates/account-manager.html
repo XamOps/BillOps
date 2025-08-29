@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Account Manager</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="h2">Account Manager</h1>
+            <a th:href="@{/account/add}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Account
+            </a>
+        </div>
+
+        <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Account Name</th>
+                        <th>Provider</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="account : ${accounts}">
+                        <td th:text="${account.accountName}">My AWS Account</td>
+                        <td>
+                            <span th:if="${account.provider == 'AWS'}" class="badge bg-warning text-dark">AWS</span>
+                            <span th:if="${account.provider == 'GCP'}" class="badge bg-info text-dark">GCP</span>
+                        </td>
+                        <td>
+                            <span th:classappend="${account.status == 'PENDING' ? 'bg-secondary' : 'bg-success'}"
+                                  class="badge" th:text="${account.status}">
+                            </span>
+                        </td>
+                        <td>
+                            <button th:if="${account.status == 'PENDING'}" type="button" class="btn btn-sm btn-info"
+                                    data-bs-toggle="modal" data-bs-target="#verifyModal"
+                                    th:attr="data-bs-externalid=${account.externalId}">
+                                Verify
+                            </button>
+                            <form th:action="@{/account/delete/{id}(id=${account.id})}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="verifyModal" tabindex="-1" aria-labelledby="verifyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form th:action="@{/account/verify}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="verifyModalLabel">Verify AWS Account</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Enter the details from the CloudFormation stack's outputs to complete the connection.</p>
+                        <input type="hidden" id="externalId" name="externalId">
+                        <div class="mb-3">
+                            <label for="awsAccountId" class="form-label">AWS Account ID</label>
+                            <input type="text" class="form-control" id="awsAccountId" name="awsAccountId" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="roleName" class="form-label">IAM Role Name</label>
+                            <input type="text" class="form-control" id="roleName" name="roleName" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Verify Account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Pass the externalId from the button to the modal's hidden input field
+        var verifyModal = document.getElementById('verifyModal');
+        verifyModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var externalId = button.getAttribute('data-bs-externalid');
+            var modalInput = verifyModal.querySelector('#externalId');
+            modalInput.value = externalId;
+        });
+    </script>
+</div>
+</body>
+</html>

@@ -7,6 +7,8 @@ import com.xammer.billops.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // Import Transactional
+
 import java.util.List;
 
 @Service
@@ -41,15 +43,23 @@ public class CustomerService {
         customerRepository.save(customer);
     }
     public Customer findByUsername(String username) {
-    User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-    return customerRepository.findByUser(user)
-            .orElseThrow(() -> new RuntimeException("Customer not found"));
-}
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        return customerRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Customer not found for user: " + username));
+    }
 
 public void updateCustomerArn(String username, String awsRoleArn) {
     Customer customer = findByUsername(username);
     customer.setAwsRoleArn(awsRoleArn);
     customerRepository.save(customer);
 }
+
+    @Transactional(readOnly = true) // Use a read-only transaction for fetching data
+    public Customer findByUsernameWithCloudAccounts(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        return customerRepository.findByUserWithCloudAccounts(user)
+                .orElseThrow(() -> new RuntimeException("Customer not found for user: " + username));
+    }
 }

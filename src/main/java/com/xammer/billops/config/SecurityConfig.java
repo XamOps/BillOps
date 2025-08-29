@@ -4,7 +4,7 @@ import com.xammer.billops.service.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -13,7 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity 
+@EnableGlobalMethodSecurity(prePostEnabled = true) // Updated for Spring Boot 2.7.5
 public class SecurityConfig {
 
     @Bean
@@ -37,20 +37,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/register", "/css/**", "/js/**").permitAll() // Publicly accessible
-                        .anyRequest().authenticated() // All other requests require login
-                )
-                .formLogin(formLogin -> formLogin
-                        .loginPage("/login") // Custom login page URL
-                        .defaultSuccessUrl("/dashboard", true) // Redirect to dashboard on success
-                        .permitAll()
-                )
-                .logout(logout -> logout.permitAll());
+            .authorizeRequests()
+                .antMatchers("/register", "/css/**", "/js/**").permitAll()
+                .antMatchers("/api/billing/data/**", "/account/**").authenticated() // Secure API and account routes
+                .anyRequest().authenticated()
+                .and()
+            .formLogin()
+                .loginPage("/login")
+                .defaultSuccessUrl("/dashboard", true)
+                .permitAll()
+                .and()
+            .logout()
+                .permitAll();
 
-        // Important for H2 console access during development
-        http.csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"));
-        http.headers(headers -> headers.frameOptions().sameOrigin());
+        // CSRF and H2 Console Configuration
+        http.csrf().ignoringAntMatchers("/h2-console/**", "/account/generate-stack-url");
+        http.headers().frameOptions().sameOrigin();
 
         return http.build();
     }

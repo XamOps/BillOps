@@ -1,798 +1,509 @@
 <!DOCTYPE html>
-<html lang="en" 
-      xmlns:th="http://www.thymeleaf.org" 
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Billing Overview</title>
+    <title>Billing Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            --info-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --dark-bg: #0f0f23;
-            --card-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --text-primary: #ffffff;
-            --text-secondary: #b8c6db;
+            --white: #fff;
+            --primary-blue: #2563eb;
+            --emerald: #10b981;
+            --orange: #f59e42;
+            --table-header: #f2f5fa;
+            --gray-bg: #f7fafd;
+            --medium-gray: #5d6470;
+            --light-gray: #eef2f7;
+            --card: #f7fafd;
+            --border: #eceef2;
+            --radius: 16px;
+            --header: #23272f;
         }
 
         body {
-            background: var(--dark-bg);
-            color: var(--text-primary);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        /* Simple header without sticky positioning */
-        .dashboard-header-container {
-            background: rgba(15, 15, 35, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border);
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            border-radius: 0 0 20px 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .dashboard-header {
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 700;
-            font-size: 2.5rem;
+            background: var(--white);
+            font-family: 'Inter', Arial, sans-serif;
+            color: var(--header);
             margin: 0;
         }
 
-        .futuristic-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-            position: relative;
+        .dashboard-container {
+            padding: 1.1rem 3vw 1.4rem 3vw;
+            max-width: 1320px;
+            margin: auto;
+            box-sizing: border-box;
         }
 
-        .futuristic-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.8rem;
         }
-
-        .futuristic-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .futuristic-card:hover::before {
-            left: 100%;
-        }
-
-        .metric-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 24px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .metric-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--primary-gradient);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .metric-card:hover::after {
-            transform: scaleX(1);
-        }
-
-        .metric-card.primary::after { background: var(--primary-gradient); }
-        .metric-card.info::after { background: var(--info-gradient); }
-        .metric-card.success::after { background: var(--success-gradient); }
-        .metric-card.warning::after { background: var(--warning-gradient); }
-
-        .metric-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+        .header-title {
+            font-size: 2.05rem;
+            font-weight: 800;
+            color: var(--primary-blue);
             display: flex;
             align-items: center;
-            justify-content: center;
-            background: var(--primary-gradient);
-            animation: pulse 2s infinite;
+        }
+        .header-title i {margin-right: 12px; font-size: 1.3em;}
+        .form-select-futuristic {
+            background: var(--gray-bg);
+            border: 1.2px solid var(--border);
+            border-radius: 13px;
+            color: var(--header);
+            padding: 0.63rem 1rem;
+            font-size: 1rem;
+            font-weight: 500;
         }
 
-        .metric-icon.info { background: var(--info-gradient); }
-        .metric-icon.success { background: var(--success-gradient); }
-        .metric-icon.warning { background: var(--warning-gradient); }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        .glass-card {
+            background: var(--card);
+            border: 1.2px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 16px rgba(220,228,245,0.13);
+            transition: box-shadow .18s, transform .13s;
+            margin-bottom: 1.05rem;
+            padding: 1.08rem 1rem 0.75rem 1rem;
+            min-width: 0;
+        }
+        .glass-card:hover {
+            box-shadow: 0 16px 62px 0 rgba(140,180,235,0.10);
+            transform: translateY(-2px) scale(1.009);
         }
 
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .kpi-cards {
+            gap: 1.08rem;
+            margin-bottom: 1.1rem;
+            display: flex; flex-wrap: wrap;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .kpi-card {
+            display: flex; flex-direction: column; align-items: flex-start;
+            padding: 1.12rem 1.08rem 1.08rem 1.05rem;
+            min-width: 210px;
+            min-height: 99px;
+            background: var(--gray-bg);
+            border-radius: var(--radius);
+            box-shadow: 0 1px 4px rgba(180,190,220,0.08);
         }
-
-        .animate-slide-up {
-            animation: slideInUp 0.6s ease-out;
+        .kpi-label {
+            font-size: 0.96rem;
+            font-weight: 600;
+            color: var(--medium-gray);
+            margin-bottom: 0.22rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
-
-        .animate-fade-in {
-            animation: fadeIn 0.8s ease-out;
+        .kpi-value {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-top: 0.24rem;
         }
-
+        .kpi-value[data-green="true"] { color: var(--emerald);}
+        .kpi-value[data-orange="true"] { color: var(--orange);}
+        
+        .alert {
+            background: #fff7e6;
+            color: #bb6900;
+            font-weight: 700;
+            border-radius: var(--radius);
+            padding: 1rem 1.5rem;
+            margin: 1.25rem 0 2.1rem 0;
+            font-size: 1.08rem;
+        }
+        .alert a {
+            color: var(--primary-blue);
+            text-decoration: underline;
+            font-weight: 700;
+        }
+        #loadingIndicator {
+            color: var(--primary-blue);
+            text-align: center;
+            padding: 3.5rem 0 1.7rem 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .dashboard-charts {
+            display: flex;
+            gap: 1.3rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.18rem;
+        }
+        .chart-col {
+            flex: 1 1 320px;
+            min-width: 290px;
+            margin-bottom: 0;
+            display: flex; flex-direction: column;
+        }
+        .chart-title {
+            color: var(--primary-blue);
+            font-weight: 700;
+            font-size: 1.06rem;
+            margin-bottom: .7rem;
+        }
         .chart-container {
             position: relative;
-            height: 400px;
+            height: 305px;
+            min-width: 0;
         }
-
-        /* Enhanced table styles with scrollbar */
+        .table-section {
+            margin-bottom: .38rem;
+            background: var(--gray-bg);
+        }
         .table-container {
-            max-height: 500px;
+            max-height: 450px;
             overflow-y: auto;
-            border-radius: 16px;
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            background: var(--white);
+            margin-bottom: 0;
         }
-
-        .table-container::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .table-container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        .table-container::-webkit-scrollbar-thumb {
-            background: var(--primary-gradient);
-            border-radius: 10px;
-        }
-
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: var(--secondary-gradient);
-        }
-
-        .table-futuristic {
-            margin: 0;
+        .table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+            border-collapse: collapse;
+            background: var(--white);
         }
-
-        .table-futuristic thead {
-            background: var(--primary-gradient);
-            position: sticky;
-            top: 0;
-            z-index: 10;
+        th, td {
+            padding: 0.7rem 1.08rem;
+            text-align: left;
         }
-
-        .table-futuristic thead th {
-            border: none;
-            color: white;
-            font-weight: 600;
-            padding: 1rem 1.5rem;
-            background: var(--primary-gradient);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .table-futuristic thead th:first-child {
-            border-top-left-radius: 16px;
-        }
-
-        .table-futuristic thead th:last-child {
-            border-top-right-radius: 16px;
-        }
-
-        .table-futuristic tbody tr {
-            border-bottom: 1px solid var(--glass-border);
-            transition: all 0.3s ease;
-            background: transparent;
-        }
-
-        .table-futuristic tbody tr:hover {
-            background: rgba(255, 255, 255, 0.05);
-            transform: scale(1.01);
-        }
-
-        .table-futuristic tbody tr:last-child td:first-child {
-            border-bottom-left-radius: 16px;
-        }
-
-        .table-futuristic tbody tr:last-child td:last-child {
-            border-bottom-right-radius: 16px;
-        }
-
-        .table-futuristic tbody td {
-            border: none;
-            padding: 1rem 1.5rem;
-            vertical-align: middle;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-        }
-
-        .progress-futuristic {
-            height: 8px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            overflow: hidden;
-            width: 100px;
-        }
-
-        .progress-bar-futuristic {
-            height: 100%;
-            background: var(--success-gradient);
-            border-radius: 10px;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: progressGlow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes progressGlow {
-            from { box-shadow: 0 0 5px rgba(79, 172, 254, 0.5); }
-            to { box-shadow: 0 0 20px rgba(79, 172, 254, 0.8); }
-        }
-
-        .form-select-futuristic {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            color: var(--text-primary);
-            padding: 0.5rem 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-select-futuristic:focus {
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
-            border-color: #667eea;
-            outline: none;
-        }
-
-        .metric-value {
-            font-size: 2rem;
-            font-weight: 700;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .metric-label {
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .card-header-futuristic {
-            background: transparent;
-            border-bottom: 1px solid var(--glass-border);
-            padding: 1.5rem;
-        }
-
-        .stagger-animation > * {
-            opacity: 0;
-            animation: slideInUp 0.6s ease-out forwards;
-        }
-
-        .stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
-        .stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
-        .stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
-        .stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
-
-        .service-icon {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--success-gradient);
-            display: inline-block;
-            margin-right: 12px;
-            animation: pulse 2s infinite;
-        }
-
-        .service-name {
-            color: var(--text-primary);
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .cost-value {
-            color: var(--text-primary);
-            font-weight: 600;
+        th {
+            color: var(--primary-blue);
+            background: var(--table-header);
+            border-bottom: 2px solid var(--border);
             font-size: 1rem;
         }
-
-        .percentage-value {
-            color: var(--text-primary);
-            font-weight: 600;
-            min-width: 50px;
-            font-size: 0.9rem;
+        td {
+            color: var(--header);
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            font-size: 1rem;
         }
+        tr:hover td { background: var(--light-gray);}
 
-        .live-data-badge {
-            background: var(--success-gradient);
-            border-radius: 20px;
-            font-size: 0.9rem;
-            padding: 0.5rem 1rem;
-            border: none;
-            color: white;
-            font-weight: 600;
+        /* --- UPDATED Drill-down styles --- */
+        .service-row, .region-row { cursor: pointer; }
+        .region-row td { padding-left: 2.5rem !important; background-color: #f8f9fa; }
+        .instance-row td { padding-left: 4rem !important; background-color: #ffffff; }
+        .region-row:hover td { background-color: #e9ecef !important; }
+        .instance-row:hover td { background-color: #f1f3f5 !important; }
+
+
+        @media (max-width: 1150px) {
+            .dashboard-container {padding: 0.7rem 1vw;}
+            .dashboard-charts, .kpi-cards { flex-direction: column;}
+            .chart-col {min-width: 0;}
         }
-
-        /* Ensure proper spacing for all sections */
-        .content-section {
-            margin-bottom: 2rem;
-        }
-
-        /* Container with proper padding */
-        .dashboard-container {
-            padding: 0 1rem;
-            max-width: 100%;
+        @media (max-width:670px){
+            .dashboard-container {padding: 0.5rem 0;}
+            .header-title {font-size:1.18rem;}
+            .glass-card { padding: 1rem .6rem;}
+            .kpi-card {padding: .95rem .7rem;}
+            .chart-container {height: 160px;}
         }
     </style>
 </head>
 <body>
-
 <div layout:fragment="content">
     <div class="dashboard-container">
-        <!-- Header (not sticky) -->
-        <div class="dashboard-header-container animate-fade-in">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1 class="dashboard-header">Billing Dashboard</h1>
-                <div>
-                    <span class="live-data-badge">
-                        <i class="fas fa-circle me-2" style="font-size: 0.5rem; color: #00ff88;"></i>
-                        Live Data
-                    </span>
-                </div>
+        <div class="header-bar">
+            <div class="header-title">
+                <i class="fas fa-chart-line"></i> Billing Overview
+            </div>
+            <div th:if="${accounts}">
+                <select id="accountSelector" class="form-select form-select-futuristic" style="min-width:180px;">
+                    <option th:each="account : ${accounts}" th:value="${account.id}" th:text="${account.accountName}"></option>
+                </select>
             </div>
         </div>
-
-        <!-- Metrics Cards -->
-        <div class="content-section stagger-animation">
-            <div class="row">
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="metric-card primary h-100">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <div class="metric-label mb-2">Current Month Spend</div>
-                                <div class="metric-value" th:text="${billingSummary.currentMonthSpend}">$3,501.50</div>
-                            </div>
-                            <div class="metric-icon">
-                                <i class="fas fa-calendar fa-lg text-white"></i>
-                            </div>
-                        </div>
+        <div th:if="${accounts == null or accounts.isEmpty()}" class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> No connected accounts found.
+            Please <a th:href="@{/account/add}" class="alert-link">add an account</a> to view billing data.
+        </div>
+        <div id="loadingIndicator" style="display: none;">
+            <p><i class="fas fa-spinner fa-spin"></i> Loading billing data...</p>
+        </div>
+        <div id="billingContent" style="display: none;">
+            <div class="kpi-cards">
+                <div class="glass-card kpi-card">
+                    <div class="kpi-label">Month-to-Date Spend</div>
+                    <div class="kpi-value" id="mtdSpend">$0.00</div>
+                </div>
+                <div class="glass-card kpi-card">
+                    <div class="kpi-label">Forecasted Spend</div>
+                    <div class="kpi-value" id="forecastedSpend" data-green="true">$0.00</div>
+                </div>
+                <div class="glass-card kpi-card">
+                    <div class="kpi-label">Last Month Spend</div>
+                    <div class="kpi-value" id="lastMonthSpend">$0.00</div>
+                </div>
+            </div>
+            <div class="dashboard-charts">
+                <div class="glass-card chart-col">
+                    <div class="chart-title">Last 6 Months Cost History</div>
+                    <div class="chart-container">
+                        <canvas id="costHistoryChart"></canvas>
                     </div>
                 </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="metric-card info h-100">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <div class="metric-label mb-2">Last Month Spend</div>
-                                <div class="metric-value" th:text="${billingSummary.lastMonthSpend}">$3,000.00</div>
-                            </div>
-                            <div class="metric-icon info">
-                                <i class="fas fa-dollar-sign fa-lg text-white"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="metric-card success h-100">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <div class="metric-label mb-2">M/M Change</div>
-                                <div class="metric-value" th:text="${billingSummary.monthOverMonthChange}">+16.7%</div>
-                            </div>
-                            <div class="metric-icon success">
-                                <i class="fas fa-arrow-trend-up fa-lg text-white"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="metric-card warning h-100">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <div class="metric-label mb-2">Forecasted Spend</div>
-                                <div class="metric-value" th:text="${billingSummary.forecastedSpend}">$3,750.00</div>
-                            </div>
-                            <div class="metric-icon warning">
-                                <i class="fas fa-chart-line fa-lg text-white"></i>
-                            </div>
-                        </div>
+                <div class="glass-card chart-col">
+                    <div class="chart-title">Cost By Service</div>
+                    <div class="chart-container">
+                        <canvas id="costByServiceChart"></canvas>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Charts Section -->
-        <div class="content-section">
-            <div class="row">
-                <div class="col-lg-8 mb-4">
-                    <div class="futuristic-card animate-slide-up">
-                        <div class="card-header-futuristic">
-                            <h6 class="m-0 font-weight-bold" style="color: var(--text-primary); font-size: 1.1rem;">
-                                <i class="fas fa-chart-bar me-2"></i>
-                                Last 6 Months Consumption
-                            </h6>
-                        </div>
-                        <div class="p-4">
-                            <div class="chart-container">
-                                <canvas id="monthlyConsumptionChart"></canvas>
-                            </div>
-                        </div>
+            <div class="table-section glass-card">
+                <div class="d-flex justify-content-between align-items-center mb-3 p-3">
+                    <div class="chart-title">Cost Breakdown</div>
+                    <div>
+                        <select id="monthFilter" class="form-select form-select-futuristic d-inline-block w-auto me-2"></select>
+                        <button id="downloadCsvBtn" class="btn btn-primary btn-sm">Download CSV</button>
                     </div>
                 </div>
-                
-                <div class="col-lg-4 mb-4">
-                    <div class="futuristic-card animate-slide-up" style="animation-delay: 0.2s;">
-                        <div class="card-header-futuristic">
-                            <h6 class="m-0 font-weight-bold" style="color: var(--text-primary); font-size: 1.1rem;">
-                                <i class="fas fa-chart-pie me-2"></i>
-                                Top Services by Cost
-                            </h6>
-                        </div>
-                        <div class="p-4">
-                            <div class="chart-container">
-                                <canvas id="topServicesChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Detailed Billing Table -->
-        <div class="content-section">
-            <div class="row">
-                <div class="col-12">
-                    <div class="futuristic-card animate-slide-up" style="animation-delay: 0.4s;">
-                        <div class="card-header-futuristic d-flex justify-content-between align-items-center">
-                            <h6 class="m-0 font-weight-bold" style="color: var(--text-primary); font-size: 1.1rem;">
-                                <i class="fas fa-table me-2"></i>
-                                Detailed Monthly Billing
-                            </h6>
-                            <select class="form-select-futuristic" style="width: auto;">
-                                <option>August 2025</option>
-                                <option>July 2025</option>
-                                <option>June 2025</option>
-                            </select>
-                        </div>
-                        <div class="table-container">
-                            <table class="table table-futuristic">
-                                <thead>
-                                    <tr>
-                                        <th><i class="fas fa-server me-2"></i>Service</th>
-                                        <th><i class="fas fa-dollar-sign me-2"></i>Cost</th>
-                                        <th><i class="fas fa-percentage me-2"></i>% of Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Thymeleaf data loop -->
-                                    <tr th:each="item, iterStat : ${detailedMonthlyBilling}">
-                                        <td>
-                                            <div class="service-name">
-                                                <span class="service-icon"></span>
-                                                <span th:text="${item.service}">Amazon EC2</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="cost-value" th:text="'$' + ${#numbers.formatDecimal(item.cost, 1, 'COMMA', 2, 'POINT')}">$1,245.67</span>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="progress-futuristic me-3">
-                                                    <div class="progress-bar-futuristic" 
-                                                         th:style="'width:' + ${item.percentage} + '%;'"></div>
-                                                </div>
-                                                <span class="percentage-value" th:text="${item.percentage} + '%'">35.5%</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <!-- Fallback sample data -->
-                                    <tr th:if="${#lists.isEmpty(detailedMonthlyBilling) or detailedMonthlyBilling == null}">
-                                        <td>
-                                            <div class="service-name">
-                                                <span class="service-icon"></span>
-                                                <span>Amazon EC2</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="cost-value">$1,245.67</span></td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="progress-futuristic me-3">
-                                                    <div class="progress-bar-futuristic" style="width: 35.5%;"></div>
-                                                </div>
-                                                <span class="percentage-value">35.5%</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr th:if="${#lists.isEmpty(detailedMonthlyBilling) or detailedMonthlyBilling == null}">
-                                        <td>
-                                            <div class="service-name">
-                                                <span class="service-icon"></span>
-                                                <span>Amazon S3</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="cost-value">$892.34</span></td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="progress-futuristic me-3">
-                                                    <div class="progress-bar-futuristic" style="width: 25.5%;"></div>
-                                                </div>
-                                                <span class="percentage-value">25.5%</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr th:if="${#lists.isEmpty(detailedMonthlyBilling) or detailedMonthlyBilling == null}">
-                                        <td>
-                                            <div class="service-name">
-                                                <span class="service-icon"></span>
-                                                <span>Amazon RDS</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="cost-value">$678.90</span></td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="progress-futuristic me-3">
-                                                    <div class="progress-bar-futuristic" style="width: 19.4%;"></div>
-                                                </div>
-                                                <span class="percentage-value">19.4%</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr th:if="${#lists.isEmpty(detailedMonthlyBilling) or detailedMonthlyBilling == null}">
-                                        <td>
-                                            <div class="service-name">
-                                                <span class="service-icon"></span>
-                                                <span>AWS Lambda</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="cost-value">$456.12</span></td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="progress-futuristic me-3">
-                                                    <div class="progress-bar-futuristic" style="width: 13.0%;"></div>
-                                                </div>
-                                                <span class="percentage-value">13.0%</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr th:if="${#lists.isEmpty(detailedMonthlyBilling) or detailedMonthlyBilling == null}">
-                                        <td>
-                                            <div class="service-name">
-                                                <span class="service-icon"></span>
-                                                <span>Amazon CloudFront</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="cost-value">$234.56</span></td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="progress-futuristic me-3">
-                                                    <div class="progress-bar-futuristic" style="width: 6.7%;"></div>
-                                                </div>
-                                                <span class="percentage-value">6.7%</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr th:if="${#lists.isEmpty(detailedMonthlyBilling) or detailedMonthlyBilling == null}">
-                                        <td>
-                                            <div class="service-name">
-                                                <span class="service-icon"></span>
-                                                <span>Other Services</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="cost-value">$123.45</span></td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="progress-futuristic me-3">
-                                                    <div class="progress-bar-futuristic" style="width: 3.5%;"></div>
-                                                </div>
-                                                <span class="percentage-value">3.5%</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Service/Region/Instance</th>
+                            <th>Cost</th>
+                        </tr>
+                        </thead>
+                        <tbody id="costBreakdownTableBody"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-    
     <script th:inline="javascript">
-    document.addEventListener("DOMContentLoaded", function() {
-        const topServicesData = /*[[${topServicesData}]]*/ {
-            "Amazon EC2": 1245.67,
-            "Amazon S3": 892.34,
-            "Amazon RDS": 678.90,
-            "AWS Lambda": 456.12,
-            "Other": 358.01
-        };
-        
-        const monthlyConsumptionData = /*[[${monthlyConsumptionData}]]*/ {
-            "March": 2500,
-            "April": 2750,
-            "May": 2450,
-            "June": 3000,
-            "July": 2800,
-            "August": 3500
-        };
-        
-        Chart.defaults.font.family = "Inter", "-apple-system,system-ui,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
-        Chart.defaults.color = '#ffffff';
-        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+        document.addEventListener('DOMContentLoaded', function () {
+            const accountSelector = document.getElementById('accountSelector');
+            const monthFilter = document.getElementById('monthFilter');
+            const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+            
+            populateMonthFilter();
 
-        // Enhanced Pie Chart
-        new Chart(document.getElementById('topServicesChart'), {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(topServicesData),
-                datasets: [{
-                    data: Object.values(topServicesData),
-                    backgroundColor: [
-                        'rgba(102, 126, 234, 0.8)',
-                        'rgba(250, 112, 154, 0.8)',
-                        'rgba(79, 172, 254, 0.8)',
-                        'rgba(67, 233, 123, 0.8)',
-                        'rgba(245, 87, 108, 0.8)'
-                    ],
-                    borderColor: [
-                        'rgba(102, 126, 234, 1)',
-                        'rgba(250, 112, 154, 1)',
-                        'rgba(79, 172, 254, 1)',
-                        'rgba(67, 233, 123, 1)',
-                        'rgba(245, 87, 108, 1)'
-                    ],
-                    borderWidth: 2,
-                    hoverBorderWidth: 3,
-                    hoverOffset: 10
-                }]
-            },
-            options: {
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true,
-                            color: '#ffffff'
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#ffffff',
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                        borderWidth: 1
-                    }
-                },
-                animation: {
-                    animateRotate: true,
-                    animateScale: true,
-                    duration: 2000
-                }
+            if (accountSelector && accountSelector.value) {
+                loadBillingData(accountSelector.value);
+                accountSelector.addEventListener('change', (event) => {
+                    if (event.target.value) loadBillingData(event.target.value);
+                });
+                monthFilter.addEventListener('change', () => {
+                    if(accountSelector.value) loadBillingData(accountSelector.value);
+                });
+                downloadCsvBtn.addEventListener('click', downloadCSV);
+            } else {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('billingContent').style.display = 'none';
             }
         });
 
-        // Enhanced Bar Chart
-        new Chart(document.getElementById('monthlyConsumptionChart'), {
-            type: 'bar',
-            data: {
-                labels: Object.keys(monthlyConsumptionData),
-                datasets: [{
-                    label: 'Monthly Cost ($)',
-                    data: Object.values(monthlyConsumptionData),
-                    backgroundColor: function(context) {
-                        const chart = context.chart;
-                        const {ctx, chartArea} = chart;
-                        if (!chartArea) return null;
-                        
-                        const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-                        gradient.addColorStop(0, 'rgba(102, 126, 234, 0.1)');
-                        gradient.addColorStop(1, 'rgba(102, 126, 234, 0.8)');
-                        return gradient;
-                    },
-                    borderColor: 'rgba(102, 126, 234, 1)',
-                    borderWidth: 2,
-                    borderRadius: 8,
-                    borderSkipped: false,
-                }]
-            },
-            options: {
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#ffffff'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#ffffff'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#ffffff',
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                        borderWidth: 1
-                    }
-                },
-                animation: {
-                    delay: (context) => {
-                        let delay = 0;
-                        if (context.type === 'data' && context.mode === 'default') {
-                            delay = context.dataIndex * 200;
-                        }
-                        return delay;
-                    },
-                    duration: 1500,
-                    easing: 'easeOutQuart'
-                }
+        let costHistoryChart, costByServiceChart;
+        let currentCostBreakdown = [];
+
+        function populateMonthFilter() {
+            const monthFilter = document.getElementById('monthFilter');
+            const now = new Date();
+            for (let i = 0; i < 6; i++) {
+                const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const option = document.createElement('option');
+                option.value = `${date.getFullYear()}-${date.getMonth() + 1}`;
+                option.textContent = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                monthFilter.appendChild(option);
             }
-        });
-    });
+        }
+
+        async function loadBillingData(accountId) {
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('billingContent').style.display = 'none';
+
+            const [year, month] = document.getElementById('monthFilter').value.split('-');
+            const url = `/api/billing/data/${accountId}?year=${year}&month=${month}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Failed to fetch data: ${response.statusText}`);
+                const data = await response.json();
+
+                currentCostBreakdown = data.costBreakdown;
+
+                updateKPIs(data);
+                renderCostHistoryChart(data.costHistory);
+                renderCostByServiceChart(data.costByService);
+                updateCostBreakdownTable(data.costBreakdown);
+
+            } catch (error) {
+                console.error('Error loading billing data:', error);
+                alert('Failed to load billing data. Please check the console for details.');
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('billingContent').style.display = 'block';
+            }
+        }
+
+        function downloadCSV() {
+            const headers = "Service,Cost\n";
+            const rows = currentCostBreakdown.map(item => `"${item.name}",${item.cost.toFixed(2)}`).join('\n');
+            const csvContent = headers + rows;
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "cost_breakdown.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function updateKPIs(data) {
+            const formatCurrency = (value) => `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('mtdSpend').textContent = formatCurrency(data.monthToDateSpend);
+            document.getElementById('forecastedSpend').textContent = formatCurrency(data.forecastedSpend);
+            document.getElementById('lastMonthSpend').textContent = formatCurrency(data.lastMonthSpend);
+        }
+        
+        Chart.defaults.color = "#23272f";
+        Chart.defaults.borderColor = "#eceef2";
+        Chart.defaults.font.family = "Inter, Arial, sans-serif";
+
+        function renderCostHistoryChart(costHistory) {
+            const ctx = document.getElementById('costHistoryChart').getContext('2d');
+            const labels = costHistory.map(item => new Date(item.date).toLocaleString('default', { month: 'short', year: '2-digit' }));
+            const data = costHistory.map(item => item.cost || 0);
+            const backgroundColors = costHistory.map(item => item.isAnomaly ? 'rgba(239, 68, 68, 0.7)' : 'rgba(37, 99, 235, 0.7)');
+            
+            if (costHistoryChart) costHistoryChart.destroy();
+            costHistoryChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Monthly Cost', data, backgroundColor: backgroundColors, borderRadius: 8 }] },
+                options: { animation: { duration: 1000 }, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function renderCostByServiceChart(costByService) {
+            const ctx = document.getElementById('costByServiceChart').getContext('2d');
+            const topServices = costByService.sort((a, b) => b.cost - a.cost).slice(0, 7);
+            const labels = topServices.map(item => item.name);
+            const data = topServices.map(item => item.cost);
+            const totalCost = data.reduce((a, b) => a + b, 0);
+
+            if (costByServiceChart) costByServiceChart.destroy();
+            costByServiceChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{ data, backgroundColor: ["#2563eb", "#10b981", "#f59e42", "#5d6470", "#a1b5d8", "#e5e7eb", "#ede9fe"], borderWidth: 1.3, borderColor: "#f7fafd" }]
+                },
+                options: {
+                    animation: { duration: 1250 },
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'bottom', labels: { boxWidth: 16, font: { weight: 'bold' } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const percentage = totalCost > 0 ? ((value / totalCost) * 100).toFixed(1) : 0;
+                                    return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCostBreakdownTable(costBreakdown) {
+            const tableBody = document.getElementById('costBreakdownTableBody');
+            tableBody.innerHTML = '';
+            costBreakdown.sort((a, b) => b.cost - a.cost).forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'service-row';
+                row.dataset.serviceName = item.name;
+                row.innerHTML = `<td><i class="fas fa-caret-right fa-fw"></i> ${item.name}</td><td>$${item.cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>`;
+                row.addEventListener('click', () => toggleRegionBreakdown(row, item.name));
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function toggleRegionBreakdown(serviceRow, serviceName) {
+            const isAlreadyOpen = serviceRow.classList.contains('expanded');
+
+            if (isAlreadyOpen) {
+                serviceRow.classList.remove('expanded');
+                let nextSibling = serviceRow.nextElementSibling;
+                while (nextSibling && (nextSibling.classList.contains('region-row') || nextSibling.classList.contains('instance-row'))) {
+                    let toRemove = nextSibling;
+                    nextSibling = nextSibling.nextElementSibling;
+                    toRemove.remove();
+                }
+                return;
+            }
+
+            serviceRow.classList.add('expanded');
+            const accountId = document.getElementById('accountSelector').value;
+            const [year, month] = document.getElementById('monthFilter').value.split('-');
+            
+            const response = await fetch(`/api/billing/breakdown/regions?accountId=${accountId}&serviceName=${encodeURIComponent(serviceName)}&year=${year}&month=${month}`);
+            const regionData = await response.json();
+
+            if (regionData.length > 0) {
+                let lastElement = serviceRow;
+                regionData.sort((a, b) => b.cost - a.cost).forEach(region => {
+                    const regionRow = document.createElement('tr');
+                    regionRow.className = 'region-row';
+                    regionRow.dataset.regionName = region.name;
+                    regionRow.innerHTML = `<td><i class="fas fa-caret-right fa-fw"></i> ${region.name}</td><td>$${region.cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>`;
+                    
+                    regionRow.addEventListener('click', (e) => {
+                        e.stopPropagation(); 
+                        toggleInstanceBreakdown(regionRow, serviceName, region.name);
+                    });
+                    lastElement.after(regionRow);
+                    lastElement = regionRow;
+                });
+            }
+        }
+        
+        async function toggleInstanceBreakdown(regionRow, serviceName, regionName) {
+            const isAlreadyOpen = regionRow.classList.contains('expanded');
+
+            if (isAlreadyOpen) {
+                regionRow.classList.remove('expanded');
+                let nextSibling = regionRow.nextElementSibling;
+                while (nextSibling && nextSibling.classList.contains('instance-row')) {
+                    let toRemove = nextSibling;
+                    nextSibling = nextSibling.nextElementSibling;
+                    toRemove.remove();
+                }
+                return;
+            }
+
+            regionRow.classList.add('expanded');
+            const accountId = document.getElementById('accountSelector').value;
+            
+            const response = await fetch(`/api/billing/breakdown/instances?accountId=${accountId}&region=${regionName}&serviceName=${encodeURIComponent(serviceName)}`);
+            const instanceData = await response.json();
+            
+            if (instanceData.length > 0) {
+                let lastElement = regionRow;
+                 instanceData.sort((a,b) => b.cost - a.cost).forEach(instance => {
+                    const instanceRow = document.createElement('tr');
+                    instanceRow.className = 'instance-row';
+                    instanceRow.innerHTML = `<td>${instance.name} (${instance.id})</td><td>$${instance.cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>`;
+                    lastElement.after(instanceRow);
+                    lastElement = instanceRow;
+                });
+            }
+        }
+
     </script>
 </div>
-
 </body>
 </html>
